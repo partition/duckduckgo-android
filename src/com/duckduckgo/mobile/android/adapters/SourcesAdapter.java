@@ -1,30 +1,5 @@
 package com.duckduckgo.mobile.android.adapters;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.os.Build;
-import android.preference.CheckBoxPreference;
-import android.support.v7.widget.SwitchCompat;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.ListView;
-import android.widget.Switch;
-import android.widget.TextView;
-
 import com.duckduckgo.mobile.android.DDGApplication;
 import com.duckduckgo.mobile.android.R;
 import com.duckduckgo.mobile.android.download.AsyncImageView;
@@ -36,164 +11,152 @@ import com.duckduckgo.mobile.android.util.DDGControlVar;
 import com.duckduckgo.mobile.android.util.PreferencesManager;
 import com.squareup.picasso.Picasso;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.os.Build;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Switch;
+import android.widget.TextView;
 
-public class SourcesAdapter extends ArrayAdapter<SectionedListItem> {	
-	private final class ToggleCheckBoxOnClickListener implements
-			OnClickListener {
-		
-		private View checkBox;
-		public ToggleCheckBoxOnClickListener(View checkBox){
-			this.checkBox = checkBox;
-		}
-		@Override
-		public void onClick(View view) {
-            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-                if(checkBox instanceof Switch) {
-                    ((Switch)checkBox).setChecked(!((Switch) checkBox).isChecked());
-                }
-            } else {
-                if(checkBox instanceof CheckBox) {
-                    ((CheckBox)checkBox).setChecked(!((CheckBox)checkBox).isChecked());
-                }
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+public class SourcesAdapter extends ArrayAdapter<SectionedListItem> {
+  private static final String TAG = "SourcesAdapter";
+  private final LayoutInflater inflater;
+  private boolean isBuildLollipop;
+  private Context context;
+  public SourcesAdapter(Context context) {
+    super(context, 0);
+    this.context = context;
+    inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    isBuildLollipop = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+  }
+
+  //TODO: Should share this image downloader with the autocompleteresults adapter instead of creating a second one...
+
+  public boolean areAllItemsEnabled() {
+    return false;
+  }
+
+  public boolean isEnabled(int position) {
+    return false;
+  }
+
+  @Override
+  public View getView(int position, View cv, ViewGroup parent) {
+    SectionedListItem item = getItem(position);
+
+    if (!item.isSection()) {
+
+      if (cv == null || cv.getTag() == null) {
+        //cv = inflater.inflate(R.layout.sourcepref_layout, null);
+        cv = inflater.inflate(R.layout.temp_sourcepref_layout, null);
+        cv.setTag(new SourceHolder((TextView) cv.findViewById(R.id.sourceTitleTextView),
+            (TextView) cv.findViewById(R.id.sourceTitleSubTextView),
+            (AsyncImageView) cv.findViewById(R.id.sourceItemBackground),
+            cv.findViewById(R.id.sourceCheckbox)));
+      }
+
+      SourcesObject feed = (SourcesObject) item;
+
+      final SourceHolder holder = (SourceHolder) cv.getTag();
+
+      if (feed != null) {
+
+        String feedId = feed.getId();
+
+        if (feedId != null && !feedId.equals("null")) {
+
+          Bitmap bitmap = DDGApplication.getImageCache().getBitmapFromCache("DUCKDUCKICO--" + feed.getId(), false);
+          if (bitmap != null) {
+            holder.imageViewBackground.setBitmap(bitmap);
+          } else {
+            // fallback - happens after an update to the source list
+
+            //Download the background image
+            if (feed.getImageUrl() != null && !feed.getImageUrl().equals("null")) {
+              Picasso.with(context)
+                  .load(feed.getImageUrl())
+                  .placeholder(android.R.color.transparent)
+                  .into(holder.imageViewBackground);
             }
-			//switchCompat.setChecked(!switchCompat.isChecked());
-		}
-	}
+          }
+        }
 
+        //Set the Title
+        holder.textViewTitle.setText(feed.getTitle());
+        holder.textViewDescription.setText(feed.getDescription());
 
-	private static final String TAG = "SourcesAdapter";
+        holder.id = feedId;
 
-    private boolean isBuildLollipop;
-	
-	private final LayoutInflater inflater;
-	private Context context;
-		
-	//TODO: Should share this image downloader with the autocompleteresults adapter instead of creating a second one...
-					
-	public SourcesAdapter(Context context) {
-		super(context, 0);
-		this.context = context;
-		inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        isBuildLollipop = Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP;
-	}
-	
-	 public boolean areAllItemsEnabled() 
-     { 
-             return false; 
-     } 
+        if (DDGControlVar.userAllowedSources.contains(holder.id)
+            || (!DDGControlVar.userDisallowedSources.contains(holder.id) && DDGControlVar.defaultSources.contains(holder.id))) {
+          if (isBuildLollipop) {
+            ((Switch) holder.checkBox).setChecked(true);
+          } else {
+            ((CheckBox) holder.checkBox).setChecked(true);
+          }
+          //holder.switchCompat.setChecked(true);
+        } else {
+          if (isBuildLollipop) {
+            ((Switch) holder.checkBox).setChecked(false);
+          } else {
+            ((CheckBox) holder.checkBox).setChecked(false);
+          }
+          //holder.switchCompat.setChecked(false);
+        }
 
-     public boolean isEnabled(int position) 
-     { 
-             return false; 
-     } 
-	
-	@Override
-	public View getView(int position, View cv, ViewGroup parent) {
-		SectionedListItem item = getItem(position);		
-		
-		if(!item.isSection()) {
-			
-			if (cv == null || cv.getTag() == null) {
-				//cv = inflater.inflate(R.layout.sourcepref_layout, null);
-                cv = inflater.inflate(R.layout.temp_sourcepref_layout, null);
-				cv.setTag(new SourceHolder((TextView)cv.findViewById(R.id.sourceTitleTextView),
-									 (TextView)cv.findViewById(R.id.sourceTitleSubTextView),
-						             (AsyncImageView)cv.findViewById(R.id.sourceItemBackground),
-						             cv.findViewById(R.id.sourceCheckbox)));
-			}
-		
-			SourcesObject feed = (SourcesObject) item;
-			
-			final SourceHolder holder = (SourceHolder) cv.getTag();
-	
-			if (feed != null) {			
-				
-				String feedId = feed.getId();
-				
-				if(feedId != null && !feedId.equals("null")){
-										
-						Bitmap bitmap = DDGApplication.getImageCache().getBitmapFromCache("DUCKDUCKICO--" + feed.getId(), false);
-						if(bitmap != null){
-							holder.imageViewBackground.setBitmap(bitmap);
-						}
-						else {
-							// fallback - happens after an update to the source list
-							
-							//Download the background image
-							if (feed.getImageUrl() != null && !feed.getImageUrl().equals("null")) {
-								Picasso.with(context)
-								.load(feed.getImageUrl())
-								.placeholder(android.R.color.transparent)
-								.into(holder.imageViewBackground);
-							}
-						}
-						
-				}
-	
-				//Set the Title
-				holder.textViewTitle.setText(feed.getTitle());
-				holder.textViewDescription.setText(feed.getDescription());
-				
-				holder.id = feedId;
-				
-				
-				if(DDGControlVar.userAllowedSources.contains(holder.id) 
-						|| (!DDGControlVar.userDisallowedSources.contains(holder.id) && DDGControlVar.defaultSources.contains(holder.id)) ){
-                    if(isBuildLollipop) {
-                        ((Switch)holder.checkBox).setChecked(true);
-                    } else {
-                        ((CheckBox)holder.checkBox).setChecked(true);
-                    }
-					//holder.switchCompat.setChecked(true);
-				}
-				else {
-                    if(isBuildLollipop) {
-                        ((Switch)holder.checkBox).setChecked(false);
-                    } else {
-                        ((CheckBox)holder.checkBox).setChecked(false);
-                    }
-					//holder.switchCompat.setChecked(false);
-				}
-				
-				//OnClickListener toggleCheckBoxOnClickListener = new ToggleCheckBoxOnClickListener(holder.switchCompat);
-                OnClickListener toggleCheckBoxOnClickListener = new ToggleCheckBoxOnClickListener(holder.checkBox);
-				holder.textViewTitle.setOnClickListener(toggleCheckBoxOnClickListener);
-				holder.textViewDescription.setOnClickListener(toggleCheckBoxOnClickListener);
-				holder.imageViewBackground.setOnClickListener(toggleCheckBoxOnClickListener);
+        //OnClickListener toggleCheckBoxOnClickListener = new ToggleCheckBoxOnClickListener(holder.switchCompat);
+        OnClickListener toggleCheckBoxOnClickListener = new ToggleCheckBoxOnClickListener(holder.checkBox);
+        holder.textViewTitle.setOnClickListener(toggleCheckBoxOnClickListener);
+        holder.textViewDescription.setOnClickListener(toggleCheckBoxOnClickListener);
+        holder.imageViewBackground.setOnClickListener(toggleCheckBoxOnClickListener);
 
-                OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
+          @Override
+          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
-                        if(isChecked){
-                            DDGControlVar.userAllowedSources.add(holder.id);
-                            DDGControlVar.userDisallowedSources.remove(holder.id);
-                            PreferencesManager.saveUserAllowedSources(DDGControlVar.userAllowedSources);
-                        }
-                        else {
-                            DDGControlVar.userDisallowedSources.add(holder.id);
-                            DDGControlVar.userAllowedSources.remove(holder.id);
-                            PreferencesManager.saveUserDisallowedSources(DDGControlVar.userDisallowedSources);
-                        }
+            if (isChecked) {
+              DDGControlVar.userAllowedSources.add(holder.id);
+              DDGControlVar.userDisallowedSources.remove(holder.id);
+              PreferencesManager.saveUserAllowedSources(DDGControlVar.userAllowedSources);
+            } else {
+              DDGControlVar.userDisallowedSources.add(holder.id);
+              DDGControlVar.userAllowedSources.remove(holder.id);
+              PreferencesManager.saveUserDisallowedSources(DDGControlVar.userDisallowedSources);
+            }
 
-                        DDGControlVar.hasUpdatedFeed = false;
+            DDGControlVar.hasUpdatedFeed = false;
 
-                        // reset temporary filter before going back
-                        DDGControlVar.targetSource = null;
-                    }
-                };
+            // reset temporary filter before going back
+            DDGControlVar.targetSource = null;
+          }
+        };
 
-                if(isBuildLollipop) {
-                    ((Switch)holder.checkBox).setOnCheckedChangeListener(onCheckedChangeListener);
-                } else {
-                    ((CheckBox)holder.checkBox).setOnCheckedChangeListener(onCheckedChangeListener);
-                }
+        if (isBuildLollipop) {
+          ((Switch) holder.checkBox).setOnCheckedChangeListener(onCheckedChangeListener);
+        } else {
+          ((CheckBox) holder.checkBox).setOnCheckedChangeListener(onCheckedChangeListener);
+        }
 
                         /*
-				holder.switchCompat.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					
+        holder.switchCompat.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
 					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-																						
+
 						if(isChecked){
 							DDGControlVar.userAllowedSources.add(holder.id);
 							DDGControlVar.userDisallowedSources.remove(holder.id);
@@ -204,72 +167,90 @@ public class SourcesAdapter extends ArrayAdapter<SectionedListItem> {
 							DDGControlVar.userAllowedSources.remove(holder.id);
 							PreferencesManager.saveUserDisallowedSources(DDGControlVar.userDisallowedSources);
 						}
-						
+
 						DDGControlVar.hasUpdatedFeed = false;
-						
+
 						// reset temporary filter before going back
 						DDGControlVar.targetSource = null;
 					}
 				});*/
-			}
-		
-		}
-		
-		else {
-			// section item
-			
-			Section si = (Section)item;
-			cv = inflater.inflate(R.layout.list_item_section, null);
-			
-			final TextView sectionView = (TextView) cv.findViewById(R.id.list_item_section_text);
-			sectionView.setText(si.getTitle());
-		}
+      }
+    } else {
+      // section item
 
-//        ListView.LayoutParams params = (ListView.LayoutParams) cv.getLayoutParams();
-//        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+      Section si = (Section) item;
+      cv = inflater.inflate(R.layout.list_item_section, null);
 
-		return cv;
-	}
-	
+      final TextView sectionView = (TextView) cv.findViewById(R.id.list_item_section_text);
+      sectionView.setText(si.getTitle());
+    }
 
-	public void setList(List<SourcesObject> feed) {
-		this.clear();
-		
-		Map<String, ArrayList<SourcesObject>> categoryMap = new TreeMap<String, ArrayList<SourcesObject>>();
-		for(SourcesObject feedItem : feed) {
-			String category = feedItem.getCategory();
-			
-			if(!categoryMap.containsKey(category)) {
-				ArrayList<SourcesObject> objList = new ArrayList<SourcesObject>();
-				objList.add(feedItem);
-				categoryMap.put(category, objList);
-			}
-			else {
-				categoryMap.get(category).add(feedItem);
-			}
-		}
-		
-		for(ArrayList<SourcesObject> sourceList : categoryMap.values()) {
-			// alphabetical sort
-			Collections.sort(sourceList, new Comparator<SourcesObject>() {
-		        @Override public int compare(SourcesObject p1, SourcesObject p2) {
-		            return p1.getTitle().compareToIgnoreCase(p2.getTitle());
-		        }
+    //        ListView.LayoutParams params = (ListView.LayoutParams) cv.getLayoutParams();
+    //        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-		    });
-		}
-		
-		for(Entry<String, ArrayList<SourcesObject>> entry : categoryMap.entrySet()) {
-			String category = entry.getKey();
-			ArrayList<SourcesObject> sourceList = entry.getValue();
-			
-			Section catItem = new Section(category);
-			this.add(catItem);
-			
-			for(SourcesObject next : sourceList) {
-				this.add(next);
-			}
-		}
-	}
+    return cv;
+  }
 
+  public void setList(List<SourcesObject> feed) {
+    this.clear();
+
+    Map<String, ArrayList<SourcesObject>> categoryMap = new TreeMap<String, ArrayList<SourcesObject>>();
+    for (SourcesObject feedItem : feed) {
+      String category = feedItem.getCategory();
+
+      if (!categoryMap.containsKey(category)) {
+        ArrayList<SourcesObject> objList = new ArrayList<SourcesObject>();
+        objList.add(feedItem);
+        categoryMap.put(category, objList);
+      } else {
+        categoryMap.get(category).add(feedItem);
+      }
+    }
+
+    for (ArrayList<SourcesObject> sourceList : categoryMap.values()) {
+      // alphabetical sort
+      Collections.sort(sourceList, new Comparator<SourcesObject>() {
+        @Override
+        public int compare(SourcesObject p1, SourcesObject p2) {
+          return p1.getTitle().compareToIgnoreCase(p2.getTitle());
+        }
+      });
+    }
+
+    for (Entry<String, ArrayList<SourcesObject>> entry : categoryMap.entrySet()) {
+      String category = entry.getKey();
+      ArrayList<SourcesObject> sourceList = entry.getValue();
+
+      Section catItem = new Section(category);
+      this.add(catItem);
+
+      for (SourcesObject next : sourceList) {
+        this.add(next);
+      }
+    }
+  }
+
+  private final class ToggleCheckBoxOnClickListener implements
+      OnClickListener {
+
+    private View checkBox;
+
+    public ToggleCheckBoxOnClickListener(View checkBox) {
+      this.checkBox = checkBox;
+    }
+
+    @Override
+    public void onClick(View view) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (checkBox instanceof Switch) {
+          ((Switch) checkBox).setChecked(!((Switch) checkBox).isChecked());
+        }
+      } else {
+        if (checkBox instanceof CheckBox) {
+          ((CheckBox) checkBox).setChecked(!((CheckBox) checkBox).isChecked());
+        }
+      }
+      //switchCompat.setChecked(!switchCompat.isChecked());
+    }
+  }
 }

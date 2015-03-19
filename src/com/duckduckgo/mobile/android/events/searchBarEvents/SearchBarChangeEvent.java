@@ -5,9 +5,9 @@ import com.duckduckgo.mobile.android.util.SCREEN;
 
 public class SearchBarChangeEvent extends Event {
 
-    public SCREEN screen;
+  public SCREEN screen;
 
-    public SearchBarChangeEvent(SCREEN screen) {
-        this.screen = screen;
-    }
+  public SearchBarChangeEvent(SCREEN screen) {
+    this.screen = screen;
+  }
 }

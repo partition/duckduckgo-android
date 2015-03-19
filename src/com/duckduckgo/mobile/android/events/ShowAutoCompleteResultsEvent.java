@@ -1,10 +1,10 @@
 package com.duckduckgo.mobile.android.events;
 
-public class ShowAutoCompleteResultsEvent extends Event{
+public class ShowAutoCompleteResultsEvent extends Event {
 
-    public boolean isVisible;
+  public boolean isVisible;
 
-    public ShowAutoCompleteResultsEvent(boolean isVisible) {
-        this.isVisible = isVisible;
-    }
+  public ShowAutoCompleteResultsEvent(boolean isVisible) {
+    this.isVisible = isVisible;
+  }
 }

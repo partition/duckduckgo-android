@@ -4,9 +4,9 @@ import com.duckduckgo.mobile.android.events.Event;
 
 public class SearchBarSetProgressEvent extends Event {
 
-	public int newProgress;
+  public int newProgress;
 
-	public SearchBarSetProgressEvent(int newProgress) {
-		this.newProgress = newProgress;
-	}
+  public SearchBarSetProgressEvent(int newProgress) {
+    this.newProgress = newProgress;
+  }
 }

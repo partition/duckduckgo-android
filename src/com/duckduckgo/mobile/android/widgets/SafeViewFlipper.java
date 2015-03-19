@@ -10,7 +10,7 @@ import android.widget.ViewFlipper;
  */
 public class SafeViewFlipper extends ViewFlipper {
   protected final String TAG = "SafeViewFlipper";
-  
+
   public SafeViewFlipper(Context context) {
     super(context);
   }
@@ -19,7 +19,7 @@ public class SafeViewFlipper extends ViewFlipper {
     super(context, attrs);
   }
 
-  @Override 
+  @Override
   protected void onDetachedFromWindow() {
     try {
       super.onDetachedFromWindow();

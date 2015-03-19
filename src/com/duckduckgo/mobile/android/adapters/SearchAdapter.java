@@ -1,15 +1,14 @@
 package com.duckduckgo.mobile.android.adapters;
 
+import com.duckduckgo.mobile.android.R;
+
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-
-import com.duckduckgo.mobile.android.R;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,147 +20,145 @@ import java.util.Map;
  *
  * @author Jeff Sharkey
  * @link http://jsharkey.org/blog/2008/08/18/separating-lists-with-headers-in-android-09/
- *
  */
 public class SearchAdapter extends BaseAdapter {
 
-    public final Map<String,Adapter> sections = new LinkedHashMap<String,Adapter>();
-    public final ArrayAdapter<String> headers;
-    //public final static int TYPE_SECTION_HEADER = 0;
-    public final static int TYPE_SECTION_DIVIDER = 0;
-    public int resId;
-    public LayoutInflater inflater;
+  //public final static int TYPE_SECTION_HEADER = 0;
+  public final static int TYPE_SECTION_DIVIDER = 0;
+  public final Map<String, Adapter> sections = new LinkedHashMap<String, Adapter>();
+  public final ArrayAdapter<String> headers;
+  public int resId;
+  public LayoutInflater inflater;
 
-    public SearchAdapter(Context context) {
-        headers = new ArrayAdapter<String>(context, R.layout.list_header);
-        init(context);
-    }
+  public SearchAdapter(Context context) {
+    headers = new ArrayAdapter<String>(context, R.layout.list_header);
+    init(context);
+  }
 
-    public SearchAdapter(Context context, int headerLayoutId) {
-        headers = new ArrayAdapter<String>(context, headerLayoutId);
-        init(context);
-    }
+  public SearchAdapter(Context context, int headerLayoutId) {
+    headers = new ArrayAdapter<String>(context, headerLayoutId);
+    init(context);
+  }
 
-    private void init(Context context) {
-        resId = R.layout.search_divider;
-        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    }
+  private void init(Context context) {
+    resId = R.layout.search_divider;
+    inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+  }
 
-    public void addSection(String section, Adapter adapter) {
-        this.headers.add(section);
-        this.sections.put(section, adapter);
-    }
+  public void addSection(String section, Adapter adapter) {
+    this.headers.add(section);
+    this.sections.put(section, adapter);
+  }
 
-    public Object getItem(int position) {
-        int sectionCounter = 0;
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            if(!adapter.isEmpty()) {
-                int size = adapter.getCount();
-                if(sectionCounter>0) size++;
+  public Object getItem(int position) {
+    int sectionCounter = 0;
+    for (Object section : this.sections.keySet()) {
+      Adapter adapter = sections.get(section);
+      if (!adapter.isEmpty()) {
+        int size = adapter.getCount();
+        if (sectionCounter > 0) size++;
 
-                if(sectionCounter==0 && position < size) return adapter.getItem(position);
-                else {
-                    if(position == 0) return inflater.inflate(resId, null, false);
-                    if(position < size) return adapter.getItem(position - 1);
-                }
-
-                // check if position inside this section
-                //if(position == 0) return inflater.inflate(resId, null, false);
-                //if(position < size) return adapter.getItem(position - 1);
-
-                // otherwise jump into next section
-                position -= size;
-            }
-            sectionCounter++;
+        if (sectionCounter == 0 && position < size) return adapter.getItem(position);
+        else {
+          if (position == 0) return inflater.inflate(resId, null, false);
+          if (position < size) return adapter.getItem(position - 1);
         }
-        return null;
-    }
 
-    public int getCount() {
-        // total together all sections, plus one for each section header
-        int total = 0;
-        for(Adapter adapter : this.sections.values())
-            if(!adapter.isEmpty())
-                total += adapter.getCount() + 1;
-        return total-1;
-    }
+        // check if position inside this section
+        //if(position == 0) return inflater.inflate(resId, null, false);
+        //if(position < size) return adapter.getItem(position - 1);
 
-    public int getViewTypeCount() {
-        // assume that headers count as one, then total all sections
-        int total = 1;
-        for(Adapter adapter : this.sections.values()) {
-            total += adapter.getViewTypeCount();
+        // otherwise jump into next section
+        position -= size;
+      }
+      sectionCounter++;
+    }
+    return null;
+  }
+
+  public int getCount() {
+    // total together all sections, plus one for each section header
+    int total = 0;
+    for (Adapter adapter : this.sections.values()) {
+      if (!adapter.isEmpty())
+        total += adapter.getCount() + 1;
+    }
+    return total - 1;
+  }
+
+  public int getViewTypeCount() {
+    // assume that headers count as one, then total all sections
+    int total = 1;
+    for (Adapter adapter : this.sections.values()) {
+      total += adapter.getViewTypeCount();
+    }
+    return total;
+  }
+
+  public int getItemViewType(int position) {
+    int type = 1;
+    int sectionCounter = 0;
+    for (Object section : this.sections.keySet()) {
+      Adapter adapter = sections.get(section);
+      if (!adapter.isEmpty()) {
+        int size = adapter.getCount();
+        if (sectionCounter > 0) size++;
+
+        if (sectionCounter == 0 && position < size) return type + adapter.getItemViewType(position);
+        else {
+          if (position == 0) return TYPE_SECTION_DIVIDER;
+          if (position < size) return type + adapter.getItemViewType(position - 1);
         }
-        return total;
+
+        // check if position inside this section
+        //if(position == 0) return TYPE_SECTION_DIVIDER;
+        //if(position < size) return type + adapter.getItemViewType(position - 1);
+
+        // otherwise jump into next section
+        position -= size;
+        type += adapter.getViewTypeCount();
+      }
+      sectionCounter++;
     }
+    return type;
+  }
 
-    public int getItemViewType(int position) {
-        int type = 1;
-        int sectionCounter = 0;
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            if(!adapter.isEmpty()) {
-                int size = adapter.getCount();
-                if(sectionCounter>0) size++;
+  public boolean areAllItemsSelectable() {
+    return false;
+  }
 
-                if(sectionCounter==0 && position < size) return type + adapter.getItemViewType(position);
-                else {
-                    if(position == 0) return TYPE_SECTION_DIVIDER;
-                    if(position < size) return type + adapter.getItemViewType(position - 1);
-                }
+  public boolean isEnabled(int position) {
+    return (getItemViewType(position) != TYPE_SECTION_DIVIDER);
+  }
 
-                // check if position inside this section
-                //if(position == 0) return TYPE_SECTION_DIVIDER;
-                //if(position < size) return type + adapter.getItemViewType(position - 1);
+  @Override
+  public View getView(int position, View convertView, ViewGroup parent) {
+    int sectionnum = 0;
+    for (Object section : this.sections.keySet()) {
+      Adapter adapter = sections.get(section);
+      if (!adapter.isEmpty()) {
+        int size = adapter.getCount();
+        if (sectionnum > 0) size++;
 
-                // otherwise jump into next section
-                position -= size;
-                type += adapter.getViewTypeCount();
-            }
-            sectionCounter++;
+        if (sectionnum == 0 && position < size) return adapter.getView(position, convertView, parent);
+        else {
+          if (position == 0 && !adapter.isEmpty()) return inflater.inflate(resId, parent, false);//)headers.getView(sectionnum, convertView, parent);
+          if (position < size) return adapter.getView(position - 1, convertView, parent);
         }
-        return type;
+        // check if position inside this section
+        //if(position == 0 && !adapter.isEmpty()) return inflater.inflate(resId, parent, false);//)headers.getView(sectionnum, convertView, parent);
+        //if(position < size) return adapter.getView(position - 1, convertView, parent);
+
+        // otherwise jump into next section
+        position -= size;
+      }
+      sectionnum++;
     }
+    return null;
+  }
 
-    public boolean areAllItemsSelectable() {
-        return false;
-    }
-
-    public boolean isEnabled(int position) {
-        return (getItemViewType(position) != TYPE_SECTION_DIVIDER);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        int sectionnum = 0;
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            if(!adapter.isEmpty()) {
-                int size = adapter.getCount();
-                if(sectionnum>0) size++;
-
-                if(sectionnum==0 && position < size) return adapter.getView(position, convertView, parent);
-                else {
-                    if(position == 0 && !adapter.isEmpty()) return inflater.inflate(resId, parent, false);//)headers.getView(sectionnum, convertView, parent);
-                    if(position < size) return adapter.getView(position - 1, convertView, parent);
-                }
-                // check if position inside this section
-                //if(position == 0 && !adapter.isEmpty()) return inflater.inflate(resId, parent, false);//)headers.getView(sectionnum, convertView, parent);
-                //if(position < size) return adapter.getView(position - 1, convertView, parent);
-
-                // otherwise jump into next section
-                position -= size;
-            }
-            sectionnum++;
-        }
-        return null;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-
+  @Override
+  public long getItemId(int position) {
+    return position;
+  }
 }

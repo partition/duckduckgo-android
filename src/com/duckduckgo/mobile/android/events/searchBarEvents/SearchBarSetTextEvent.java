@@ -4,9 +4,9 @@ import com.duckduckgo.mobile.android.events.Event;
 
 public class SearchBarSetTextEvent extends Event {
 
-	public String text;
+  public String text;
 
-	public SearchBarSetTextEvent(String text) {
-		this.text = text;
-	}
+  public SearchBarSetTextEvent(String text) {
+    this.text = text;
+  }
 }
