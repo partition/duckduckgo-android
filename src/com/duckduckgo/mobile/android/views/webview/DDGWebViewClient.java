@@ -21,6 +21,7 @@ import android.webkit.WebViewClient;
 import com.duckduckgo.mobile.android.activity.DuckDuckGo;
 import com.duckduckgo.mobile.android.dialogs.SSLCertificateDialog;
 import com.duckduckgo.mobile.android.util.DDGConstants;
+import com.duckduckgo.mobile.android.util.DDGControlVar;
 import com.duckduckgo.mobile.android.util.DDGUtils;
 import com.duckduckgo.mobile.android.util.SESSIONTYPE;
 
@@ -57,7 +58,7 @@ public class DDGWebViewClient extends WebViewClient {
 			else if(url.startsWith("file:///android_asset/webkit/")){
 				return false;
 			}
-			else if(!(url.startsWith("http:") || url.startsWith("https:"))) {
+			else if(!(url.startsWith("http:") || url.startsWith("https:")) || shouldUseExternalBrowser()) {
                 // custom handling, there can be a related app
 				Intent customIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 				DDGUtils.execIntentIfSafe(activity, customIntent);
@@ -70,8 +71,12 @@ public class DDGWebViewClient extends WebViewClient {
 		}
 		return false;
 	}
-	
-	@SuppressLint("NewApi")
+
+       private boolean shouldUseExternalBrowser() {
+         return DDGControlVar.useExternalBrowser == DDGConstants.EXTERNAL_EXCEPT_SEARCHES;
+       }
+
+       @SuppressLint("NewApi")
 	public void onPageStarted(WebView view, String url, Bitmap favicon) {
 		super.onPageStarted(view, url, favicon);
         if(url.equals(DDGWebView.ABOUT_BLANK)){
