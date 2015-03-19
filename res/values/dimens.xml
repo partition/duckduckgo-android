@@ -68,4 +68,11 @@
     <dimen name="header_footer_left_right_padding">25dp</dimen>
     <dimen name="header_footer_top_bottom_padding">20dp</dimen>
     <dimen name="header_footer_internal_padding">10dp</dimen>
+
+    <!-- Preference fragment padding, bottom -->
+    <dimen name="preference_fragment_padding_bottom">0dp</dimen>
+    <!-- Preference fragment padding, sides -->
+    <dimen name="preference_fragment_padding_side">16dp</dimen>
+
+    <integer name="preference_fragment_scrollbarStyle">0x02000000</integer> <!-- outsideOverlay -->
 </resources>

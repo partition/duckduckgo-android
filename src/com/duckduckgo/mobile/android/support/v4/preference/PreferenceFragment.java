@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package android.support.v4.preference;
+package com.duckduckgo.mobile.android.support.v4.preference;
+
+import com.duckduckgo.mobile.android.R;
 
 import android.content.Intent;
 import android.os.Build;
@@ -26,7 +28,6 @@ import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.support.v4.app.Fragment;
-import android.support.v4.preferencefragment.R;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -169,8 +170,8 @@ public abstract class PreferenceFragment extends Fragment implements
 	}
     
     /**
-     * Returns the {@link PreferenceManager} used by this fragment.
-     * @return The {@link PreferenceManager}.
+     * Returns the {@link android.preference.PreferenceManager} used by this fragment.
+     * @return The {@link android.preference.PreferenceManager}.
      */
     public PreferenceManager getPreferenceManager() {
         return mPreferenceManager;
@@ -179,7 +180,7 @@ public abstract class PreferenceFragment extends Fragment implements
     /**
      * Sets the root of the preference hierarchy that this fragment is showing.
      *
-     * @param preferenceScreen The root {@link PreferenceScreen} of the preference hierarchy.
+     * @param preferenceScreen The root {@link android.preference.PreferenceScreen} of the preference hierarchy.
      */
     public void setPreferenceScreen(PreferenceScreen preferenceScreen) {
         if (PreferenceManagerCompat.setPreferences(mPreferenceManager, preferenceScreen) && preferenceScreen != null) {
@@ -193,7 +194,7 @@ public abstract class PreferenceFragment extends Fragment implements
     /**
      * Gets the root of the preference hierarchy that this fragment is showing.
      *
-     * @return The {@link PreferenceScreen} that is the root of the preference
+     * @return The {@link android.preference.PreferenceScreen} that is the root of the preference
      *         hierarchy.
      */
     public PreferenceScreen getPreferenceScreen() {
@@ -201,9 +202,9 @@ public abstract class PreferenceFragment extends Fragment implements
     }
     
     /**
-     * Adds preferences from activities that match the given {@link Intent}.
+     * Adds preferences from activities that match the given {@link android.content.Intent}.
      *
-     * @param intent The {@link Intent} to query activities.
+     * @param intent The {@link android.content.Intent} to query activities.
      */
     public void addPreferencesFromIntent(Intent intent) {
         requirePreferenceManager();
@@ -239,11 +240,11 @@ public abstract class PreferenceFragment extends Fragment implements
     }
 	
     /**
-     * Finds a {@link Preference} based on its key.
+     * Finds a {@link android.preference.Preference} based on its key.
      *
      * @param key The key of the preference to retrieve.
-     * @return The {@link Preference} with the key, or null.
-     * @see PreferenceGroup#findPreference(CharSequence)
+     * @return The {@link android.preference.Preference} with the key, or null.
+     * @see android.preference.PreferenceGroup#findPreference(CharSequence)
      */
     public Preference findPreference(CharSequence key) {
         if (mPreferenceManager == null) {

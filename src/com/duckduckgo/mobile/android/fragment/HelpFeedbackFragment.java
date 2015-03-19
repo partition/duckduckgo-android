@@ -3,6 +3,7 @@ package com.duckduckgo.mobile.android.fragment;
 import com.duckduckgo.mobile.android.R;
 import com.duckduckgo.mobile.android.bus.BusProvider;
 import com.duckduckgo.mobile.android.events.RequestOpenWebPageEvent;
+import com.duckduckgo.mobile.android.support.v4.preference.PreferenceFragment;
 import com.duckduckgo.mobile.android.util.DDGUtils;
 import com.duckduckgo.mobile.android.util.SESSIONTYPE;
 
@@ -11,7 +12,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
-import android.support.v4.preference.PreferenceFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
